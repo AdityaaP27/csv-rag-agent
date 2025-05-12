@@ -1,31 +1,89 @@
-import os
-import requests
 import streamlit as st
-from dotenv import load_dotenv
+import requests
+import pandas as pd
+from io import BytesIO
+from rag.config import API_URL, CSV_PATH
 
-load_dotenv()
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8000/query")
+st.set_page_config(layout="wide")
+st.title("Talk to Your CSV 🚀")
 
-st.set_page_config(page_title="CSV Q&A Agent", layout="wide")
-st.title("CSV Q&A Agent")
+# --- 0. Initialize session state flags on first run ---
+if "indexed" not in st.session_state:
+    st.session_state.indexed = False
+if "index_requested" not in st.session_state:
+    st.session_state.index_requested = False
+if "use_sample" not in st.session_state:
+    st.session_state.use_sample = None
+if "uploaded_file" not in st.session_state:
+    st.session_state.uploaded_file = None
 
-uploaded_file = st.file_uploader("Upload your CSV file", type="csv")
+# --- Sidebar: Data Selection & Indexing ---
+with st.sidebar:
+    st.header("1. Load Your Data")
+    sample_tab, upload_tab = st.tabs(["📄 Sample Data", "📤 Upload CSV"])
 
-question = st.text_input("Ask a question about your data:")
+    # Sample Data tab
+    with sample_tab:
+        st.markdown(
+            """
+            **Use our sample dataset** to try out the Q&A agent immediately.
+            
+            - **Rows:** 100  
+            - **Columns:** `id`, `feature_a`, `feature_b`, `label`  
+            """
+        )
+        sample_df = pd.read_csv(CSV_PATH)
+        st.dataframe(sample_df.head(5), use_container_width=True)
 
-use_sample = st.checkbox("Use sample data.csv (if no file uploaded)", value=True)
+        if st.button("Index Sample Data"):
+            st.session_state.use_sample = True
+            st.session_state.uploaded_file = None
+            st.session_state.index_requested = True
 
-if st.button("Submit") and question:
-    with st.spinner("Thinking..."):
-        try:
-            files = {"file": uploaded_file} if uploaded_file else None
-            payload = {"question": question, "use_sample": use_sample}
-            response = requests.post(API_URL, data=payload, files=files)
-            response.raise_for_status()
-            answer = response.json().get("answer", "")
-        except Exception as e:
-            st.error(f"Error querying the API: {e}")
-            answer = None
-    if answer:
-        st.subheader("Answer")
-        st.write(answer)
+    # Upload CSV tab
+    with upload_tab:
+        uploaded = st.file_uploader("Select a CSV file", type="csv", key="uploader")
+        if uploaded:
+            st.success(f"Loaded `{uploaded.name}` — {uploaded.size/1024:.1f} KB")
+            if st.button("Index Uploaded CSV"):
+                st.session_state.use_sample = False
+                st.session_state.uploaded_file = uploaded
+                st.session_state.index_requested = True
+
+# --- 2. Trigger indexing only when requested ---
+if st.session_state.index_requested:
+    with st.spinner("Indexing data… this may take a moment"):
+        files = None
+        if not st.session_state.use_sample:
+            f = st.session_state.uploaded_file
+            files = {"file": (f.name, f.getvalue(), "text/csv")}
+        resp = requests.post(
+            f"{API_URL}/index",
+            data={"use_sample": st.session_state.use_sample},
+            files=files
+        )
+        if resp.ok:
+            info = resp.json()
+            st.sidebar.success(f"✅ Indexed {info['num_docs']} rows")
+            st.session_state.indexed = True
+        else:
+            st.sidebar.error(f"Indexing failed: {resp.text}")
+        # Reset the trigger so it doesn't rerun
+        st.session_state.index_requested = False
+
+# --- 3. Main: Query Interface (once indexed) ---
+if st.session_state.indexed:
+    st.header("2. Ask a Question")
+    question = st.text_input("Enter your question about the data:")
+    if st.button("Submit") and question:
+        with st.spinner("Thinking…"):
+            resp = requests.post(
+                f"{API_URL}/query",
+                data={"question": question}
+            )
+            if resp.ok:
+                answer = resp.json().get("answer", "")
+                st.subheader("Answer")
+                st.markdown(answer)
+            else:
+                st.error(f"Query failed: {resp.text}")

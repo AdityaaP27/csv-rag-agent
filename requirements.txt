@@ -8,4 +8,5 @@ langchain_pinecone
 fastapi 
 uvicorn 
 streamlit
+streamlit-aggrid
 python-multipart

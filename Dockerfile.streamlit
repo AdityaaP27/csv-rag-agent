@@ -1,0 +1,25 @@
+# syntax=docker/dockerfile:1
+
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install display dependencies (if any) and pip packages
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+
+# Copy your sample CSV into /app/data/
+RUN mkdir -p /app/data
+COPY data.csv /app/data/data.csv
+
+# Copy API entrypoint to /app
+COPY src/app_ui.py .
+# Also copy your rag package
+COPY src/rag/ ./rag/
+
+# Expose Streamlit port
+EXPOSE 8501
+
+# Command
+CMD ["streamlit", "run", "app_ui.py", "--server.port=8501", "--server.address=0.0.0.0"]
