@@ -5,7 +5,7 @@ from io import BytesIO
 from rag.config import API_URL, CSV_PATH
 
 st.set_page_config(layout="wide")
-st.title("Talk to Your CSV 🚀")
+st.title("Talk to Your CSV ")
 
 # --- 0. Initialize session state flags on first run ---
 if "indexed" not in st.session_state:
@@ -25,11 +25,11 @@ with st.sidebar:
     # Sample Data tab
     with sample_tab:
         st.markdown(
-            """
+             """
             **Use our sample dataset** to try out the Q&A agent immediately.
             
-            - **Rows:** 100  
-            - **Columns:** `id`, `feature_a`, `feature_b`, `label`  
+            - **Rows:** 30  
+            - **Columns:** `Year Experience`, `Salary`  
             """
         )
         sample_df = pd.read_csv(CSV_PATH)
