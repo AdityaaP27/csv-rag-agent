@@ -11,16 +11,6 @@ An AI-powered Retrieval-Augmented Generation (RAG) agent that lets you query any
 - [Features](#features)  
 - [Architecture](#architecture)  
 - [Tech Stack](#tech-stack)  
-- [Getting Started](#getting-started)  
-  - [Prerequisites](#prerequisites)  
-  - [Clone & Install](#clone--install)  
-  - [Environment Variables](#environment-variables)  
-  - [Running Locally](#running-locally)  
-- [Usage](#usage)  
-- [Deployment](#deployment)  
-- [Contributing](#contributing)  
-- [License](#license)  
-
 ---
 
 ## Features
