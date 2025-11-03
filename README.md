@@ -2,8 +2,17 @@
 
 An AI-powered Retrieval-Augmented Generation (RAG) agent that lets you query any CSV file in natural language. Built with FastAPI, Streamlit, LangChain, Mistral embeddings, Pinecone vector store, and deployed on Render.
 
-[🔗 Live Demo](https://chat-with-csv-vwig.onrender.com/)
+[Live Demo]
 
+> Because Render’s free tier sleeps inactive services, please start the backend first:
+> **Backend (starts slowly on cold start):**
+> [https://csv-rag-agent.onrender.com](https://csv-rag-agent.onrender.com)
+>
+> Then open the main UI:
+> **Streamlit Frontend:**
+> [https://chat-with-csv-vwig.onrender.com/](https://chat-with-csv-vwig.onrender.com/)
+
+---
 ---
 
 ## Table of Contents
